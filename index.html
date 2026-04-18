@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://matsrobot.github.io/Favicon-192.png" sizes="192x192">
+    
+    <title>🚐 VW-T5-Intelligent-Split-Charge-Management-System | MatsRobot</title>
+    <meta name="description" content="A custom software-defined BMS for VW T5 campers. Corrects charge current to protect modern batteries using LTC3780 and Arduino Nano telemetry.">
+    
+    <link rel="canonical" href="https://github.com/MatsRobot/T5-BMS" />
+
+    <style>
+        :root {
+            --gh-green: #238636;
+            --gh-green-hover: #2ea44f;
+            --gh-dark: #24292e;
+            --gh-blue: #0366d6;
+            --gh-border: #eaecef;
+            --gh-bg-gray: #f6f8fa;
+            --note-bg: #fffbdd;
+            --note-border: #d4a017;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
+            line-height: 1.6; 
+            color: var(--gh-dark); 
+            max-width: 950px; 
+            margin: 0 auto; 
+            padding: 2rem; 
+        }
+
+        .hero-section {
+            display: flex;
+            gap: 2.5rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .hero-text { flex: 3; }
+
+        .image-sidebar { 
+            flex: 2; 
+            border: 1px solid var(--gh-border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .image-sidebar img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .caption { 
+            font-size: 0.85rem; 
+            color: #586069; 
+            margin-top: 10px; 
+            display: block; 
+        }
+
+        h1 { font-size: 1.8rem; margin-top: 0; }
+        h2 { color: var(--gh-blue); border-bottom: 1px solid var(--gh-border); padding-bottom: 0.3em; margin-top: 2rem; }
+        h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+
+        .note { 
+            background-color: var(--note-bg); 
+            padding: 1.25rem; 
+            border-left: 5px solid var(--note-border); 
+            margin: 1.5rem 0; 
+            border-radius: 4px;
+        }
+
+        .btn-download { 
+            background-color: var(--gh-green); 
+            color: white; 
+            padding: 12px 28px; 
+            text-decoration: none; 
+            border-radius: 6px; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 18px; 
+            font-weight: 600;
+            transition: background 0.2s, transform 0.1s;
+            border: 1px solid rgba(27, 31, 35, 0.15);
+            box-shadow: 0 1px 0 rgba(27, 31, 35, 0.1);
+        }
+
+        .btn-download:hover { background-color: var(--gh-green-hover); }
+
+        .btn-text-container {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .btn-main {
+            font-size: 1.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .btn-sub-lines {
+            font-size: 0.75rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px; 
+        }
+
+        .tech-table th, .tech-table td { 
+            padding: 12px; 
+            border: 1px solid var(--gh-border); 
+        }
+
+        .tech-table th { background-color: var(--gh-bg-gray); text-align: left; }
+
+        footer { 
+            margin-top: 4rem; 
+            padding: 2rem 0;
+            border-top: 1px solid var(--gh-border); 
+            text-align: center; 
+            color: #6a737d; 
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section { flex-direction: column; }
+            .hero-text { order: 2; }
+            .image-sidebar { order: 1; width: 100%; }
+            .btn-download { width: 100%; justify-content: center; box-sizing: border-box; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero-section">
+        <div class="hero-text">
+            <h1>🚐 T5-BMS: Intelligent Split-Charge Management</h1>
+            <p>A precision <strong>Power Management Layer</strong> for VW T5/T5.1 Transporters. This project integrates an <strong>Arduino Nano</strong> with an <strong>LTC3780 Buck-Boost</strong> controller to actively regulate the current flow to modern leisure batteries, preventing the "low-resistance trap" common in upgraded electrical systems.</p>
+            
+            <div class="note">
+                <strong>Important Compatibility:</strong> This system is designed specifically for VW Transporters with <strong>traditional (non-smart) alternators</strong>. It corrects the high-amperage surge that occurs when legacy alternators meet modern, low-resistance battery chemistry.
+            </div>
+
+            <a href="https://github.com/MatsRobot/T5-BMS" class="btn-download">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                </svg>
+                <div class="btn-text-container">
+                    <span class="btn-main">Get Project Files</span>
+                    <div class="btn-sub-lines">
+                        <span>Source Code, Schematics & Technical Documentation</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="image-sidebar">
+            <img src="https://raw.githubusercontent.com/MatsRobot/matsrobot.github.io/main/BMS_Logo.png" alt="T5 BMS Schematic">
+            <span class="caption">Dual-Sensor Telemetry Layout</span>
+        </div>
+    </div>
+
+    <h2>The Engineering Problem: The Low-Resistance Trap</h2>
+    <p>When you replace an old lead-acid battery in a VW T5 with a modern AGM, Gel, or Lithium version, you introduce a new variable: <strong>significantly lower internal resistance</strong>.</p>
+    
+    <p>Standard Voltage Sensitive Relays (VSR) create a "dumb" mechanical bridge. Because of the low resistance of new batteries, they attempt to pull massive current from the alternator—often exceeding 30A. This overloads the vehicle's original 20A wiring, repeatedly blowing fuses and <strong>potentially warping the battery plates</strong> due to rapid, unregulated heat buildup. Unless you limit the current, you risk damaging your expensive new investment.</p>
+
+    <h2>Hardware Implementation & "Watchdog" Safety</h2>
+    
+    <h3>Precision Dual-Rail Sensing</h3>
+    <p>The system utilizes two <strong>INA219 High-Side sensors</strong> to monitor the input (Alternator) and output (Battery) rails independently. To handle the high-current demands, we <strong>replaced the stock shunt resistors</strong> on these modules with <strong>0.01 Ohm (R100) shunts</strong>. This modification allows the Arduino Nano to calculate real-time wattage and conversion efficiency with laboratory-grade accuracy.</p>
+
+    <h3>Active Current Limiting (LTC3780)</h3>
+    <p>At the heart of the power stage is the <strong>LTC3780 Automatic Buck-Boost converter</strong>. We selected this specific module because it can flawlessly step voltage both up and down, maintaining a steady 14.4V even if the alternator voltage sags. By manually adjusting the hardware Constant Current (CC) trimmer to <strong>14A</strong>, we ensure the battery never pulls more than the vehicle's loom can safely provide.</p>
+
+    <h3>NE555 "Missing Pulse" Watchdog</h3>
+    <p>To ensure <strong>zero parasitic drain</strong> and fail-safe operation, we integrated an <strong>NE555 Timer circuit</strong>. The Arduino sends a 1Hz "heartbeat" pulse to the 555; if the software hangs or the engine stops, the pulse ceases, and the watchdog physically disconnects the main relay after 120 seconds. This prevents the system from ever accidentally flattening the starter battery.</p>
+
+    <h2>Charge Stage Logic</h2>
+    <div class="table-container">
+        <table class="tech-table">
+            <thead>
+                <tr><th>Stage</th><th>Technical Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>STANDBY</strong></td><td>System monitors for alternator activity. Isolated below 13.2V.</td></tr>
+                <tr><td><strong>BULK</strong></td><td>Relay engaged. LTC3780 provides 14.4V, capped at 14A.</td></tr>
+                <tr><td><strong>FINISHED</strong></td><td>Disconnects at 14.2V when current draw is < 0.5A for 5 mins.</td></tr>
+                <tr><td><strong>PULSE</strong></td><td>Bypasses charging every 10 mins to log "resting" battery voltage.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>🗺️ Future Roadmap</h2>
+    <ul>
+        <li><strong>Solar Integration:</strong> Adding an MPPT rail to allow the Nano to prioritize solar charging over the alternator when stationary.</li>
+        <li><strong>Bluetooth Dashboard:</strong> Integrating an <strong>HC-05 module</strong> to stream live telemetry directly to a smartphone app, replacing the under-seat OLED display.</li>
+        <li><strong>LiFePO4 Profiles:</strong> Expanding the software state-machine to include specific curves for <strong>Lithium Iron Phosphate</strong> batteries, which have much narrower voltage tolerances and require "cold-charge" protection.</li>
+    </ul>
+
+    <footer>
+        <p>© 2026 MatsRobot | Part of the Campervan Power Systems Initiative</p>
+        <p><small>Copyright (c) 2026 | Licensed under the <a href="https://github.com/MatsRobot/matsrobot.github.io/blob/main/LICENSE" style="color: #6a737d;">MIT License</a></small></p>
+    </footer>
+
+</body>
+</html>
