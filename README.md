@@ -37,7 +37,7 @@
 
 ---
 
-<img  alt="Battery Management System - Nano_bb" src="https://github.com/user-attachments/assets/10110602-3062-4d80-888c-5e8549cef712" />
+<img width="4986" height="2850" alt="Battery Management System - Nano_bb" src="https://github.com/user-attachments/assets/c9b9c29e-7af7-4797-a5bf-2665156401bc" />
 
 ---
 
