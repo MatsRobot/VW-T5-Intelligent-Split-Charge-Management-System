@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://matsrobot.github.io/Favicon-192.png" sizes="192x192">
     
-    <title>🚐 VW-T5-Intelligent-Split-Charge-Management-System | MatsRobot</title>
-    <meta name="description" content="A custom software-defined BMS for VW T5 campers. Corrects charge current to protect modern batteries using LTC3780 and Arduino Nano telemetry.">
+    <title>🚐 VW-T5-Intelligent-Split-Charge-Management-System (V1.0) | MatsRobot</title>
+    <meta name="description" content="Version 1.0 of the software-defined BMS for VW T5 campers. Features active current limiting, dual-rail telemetry, and NE555 watchdog safety.">
     
     <link rel="canonical" href="https://github.com/MatsRobot/VW-T5-Intelligent-Split-Charge-Management-System" />
 
@@ -150,11 +150,11 @@
 
     <div class="hero-section">
         <div class="hero-text">
-            <h1>🚐 VW T5 Intelligent Split-Charge Management</h1>
-            <p>A precision <strong>Power Management Layer</strong> for VW T5/T5.1 Transporters. This project integrates an <strong>Arduino Nano</strong> with an <strong>LTC3780 Buck-Boost</strong> controller to actively regulate the current flow to modern leisure batteries, preventing the "low-resistance trap" common in upgraded electrical systems.</p>
+            <h1>🚐 VW T5 Intelligent Split-Charge Management (V1.0)</h1>
+            <p>A custom-engineered <strong>Power Management</strong> solution for VW T5 campers. Version 1.0 integrates an <strong>Arduino Nano</strong> with an <strong>LTC3780 Buck-Boost</strong> controller to solve the "low-resistance trap," protecting modern batteries from alternator surges via active current regulation and dual-rail telemetry.</p>
             
             <div class="note">
-                <strong>Important Compatibility:</strong> This system is designed specifically for VW Transporters with <strong>traditional (non-smart) alternators</strong>. It corrects the high-amperage surge that occurs when legacy alternators meet modern, low-resistance battery chemistry.
+                <strong>T5 BSM V1.0:</strong> Features <strong>Hysteresis switching</strong> (13.4V/12.8V), a 3-second disconnect delay to prevent relay chatter, and a <strong>30-second watchdog grace period</strong> for efficient power-down.
             </div>
 
             <a href="https://github.com/MatsRobot/VW-T5-Intelligent-Split-Charge-Management-System" class="btn-download">
@@ -162,57 +162,49 @@
                     <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                 </svg>
                 <div class="btn-text-container">
-                    <span class="btn-main">Get Project Files</span>
+                    <span class="btn-main">Get V1.0 Source Files</span>
                     <div class="btn-sub-lines">
-                        <span>Source Code, Schematics & Technical Documentation</span>
+                        <span>Arduino Code, Schematics & Data Logging Config</span>
                     </div>
                 </div>
             </a>
         </div>
 
         <div class="image-sidebar">
-            <img src="https://github.com/user-attachments/assets/10110602-3062-4d80-888c-5e8549cef712">
-            <span class="caption">VW T5 Intelligent Split Charge Management System</span>
+            <img src="https://github.com/user-attachments/assets/c9b9c29e-7af7-4797-a5bf-2665156401bc" alt="T5 BMS V1.0 Architecture">
+            <span class="caption">Full System Schematic & Management Architecture</span>
         </div>
     </div>
 
-
-    <h2>The Engineering Problem: The Low-Resistance Trap</h2>
-    <p>When you replace an old lead-acid battery in a VW T5 with a modern AGM, Gel, or Lithium version, you introduce a new variable: <strong>significantly lower internal resistance</strong>.</p>
+    <h2>Engineering Focus: The Low-Resistance Trap</h2>
+    <p>Modern AGM, Gel, and Lithium batteries have significantly <strong>lower internal resistance</strong> than legacy lead-acid units. When directly bridged to a T5 alternator via a standard relay, they pull massive current—often exceeding 30A—overloading vehicle wiring and risking thermal damage to the battery plates.</p>
     
-    <p>Standard Voltage Sensitive Relays (VSR) create a "dumb" mechanical bridge. Because of the low resistance of new batteries, they attempt to pull massive current from the alternator—often exceeding 30A. This overloads the vehicle's original 20A wiring, repeatedly blowing fuses and <strong>potentially warping the battery plates</strong> due to rapid, unregulated heat buildup. Unless you limit the current, you risk damaging your expensive new investment.</p>
+    <p>This system acts as an intelligent current-limiter, capping the charge at a safe **14A** while maintaining a stable **14.4V** profile regardless of alternator load.</p>
 
-    <h2>Hardware Implementation & "Watchdog" Safety</h2>
-    
-    <h3>Precision Dual-Rail Sensing</h3>
-    <p>The system utilizes two <strong>INA219 High-Side sensors</strong> to monitor the input (Alternator) and output (Battery) rails independently. To handle the high-current demands, we <strong>replaced the stock shunt resistors</strong> on these modules with <strong>0.01 Ohm (R100) shunts</strong>. This modification allows the Arduino Nano to calculate real-time wattage and conversion efficiency with laboratory-grade accuracy.</p>
+    <h2>Safety & Reliability: The NE555 Watchdog</h2>
+    <p>To ensure <strong>zero parasitic drain</strong> when the engine is off and to protect against software hangs, we utilize an <strong>NE555 "Missing Pulse" Detector</strong>. The Nano sends a 1Hz heartbeat; if this heartbeat stops due to an engine shutdown or a software error, the watchdog physically cuts power to the module after a **30-second grace period**, allowing for a final log to the SD card.</p>
 
-    <h3>Active Current Limiting (LTC3780)</h3>
-    <p>At the heart of the power stage is the <strong>LTC3780 Automatic Buck-Boost converter</strong>. We selected this specific module because it can flawlessly step voltage both up and down, maintaining a steady 14.4V even if the alternator voltage sags. By manually adjusting the hardware Constant Current (CC) trimmer to <strong>14A</strong>, we ensure the battery never pulls more than the vehicle's loom can safely provide.</p>
-
-    <h3>NE555 "Missing Pulse" Watchdog</h3>
-    <p>To ensure <strong>zero parasitic drain</strong> and fail-safe operation, we integrated an <strong>NE555 Timer circuit</strong>. The Arduino sends a 1Hz "heartbeat" pulse to the 555; if the software hangs or the engine stops, the pulse ceases, and the watchdog physically disconnects the main relay after 120 seconds. This prevents the system from ever accidentally flattening the starter battery.</p>
-
-    <h2>Charge Stage Logic</h2>
+    <h2>V1.0 Logic & Charge Stages</h2>
     <div class="table-container">
         <table class="tech-table">
             <thead>
                 <tr><th>Stage</th><th>Technical Description</th></tr>
             </thead>
             <tbody>
-                <tr><td><strong>STANDBY</strong></td><td>System monitors for alternator activity. Isolated below 13.2V.</td></tr>
-                <tr><td><strong>BULK</strong></td><td>Relay engaged. LTC3780 provides 14.4V, capped at 14A.</td></tr>
-                <tr><td><strong>FINISHED</strong></td><td>Disconnects at 14.2V when current draw is < 0.5A for 5 mins.</td></tr>
-                <tr><td><strong>PULSE</strong></td><td>Bypasses charging every 10 mins to log "resting" battery voltage.</td></tr>
+                <tr><td><strong>OFF/STANDBY</strong></td><td>Engine confirmed off. System isolated below **12.8V** for 3 seconds.</td></tr>
+                <tr><td><strong>BULK</strong></td><td>Engine detected running (**13.4V**). Relay engaged; LTC3780 active at 14.4V/14A.</td></tr>
+                <tr><td><strong>FULL/FINISHED</strong></td><td>Target reached (**14.2V** and **< 0.5A** for 5 mins). System enters float/finish mode.</td></tr>
+                <tr><td><strong>PROTECT</strong></td><td>Instant disconnect if Temp > **60°C**, sensor error, or Battery > **14.6V**. Triggers Triple-Pulse Alarm.</td></tr>
+                <tr><td><strong>PULSE CHECK</strong></td><td>Every 10 minutes, charging halts briefly to record the resting battery voltage.</td></tr>
             </tbody>
         </table>
     </div>
 
     <h2>🗺️ Future Roadmap</h2>
     <ul>
-        <li><strong>Solar Integration:</strong> Adding an MPPT rail to allow the Nano to prioritize solar charging over the alternator when stationary.</li>
-        <li><strong>Bluetooth Dashboard:</strong> Integrating an <strong>HC-05 module</strong> to stream live telemetry directly to a smartphone app, replacing the under-seat OLED display.</li>
-        <li><strong>LiFePO4 Profiles:</strong> Expanding the software state-machine to include specific curves for <strong>Lithium Iron Phosphate</strong> batteries, which have much narrower voltage tolerances and require "cold-charge" protection.</li>
+        <li><strong>Solar Integration:</strong> Adding an MPPT charging rail to balance power between the Alternator and Solar panels.</li>
+        <li><strong>Bluetooth Dashboard:</strong> Integration of an <strong>HC-05 module</strong> for real-time smartphone telemetry.</li>
+        <li><strong>LiFePO4 Profiles:</strong> Expanding the state-machine to support Lithium Iron Phosphate voltage tolerances.</li>
     </ul>
 
     <footer>
