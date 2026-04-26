@@ -227,57 +227,67 @@ void loop() {
         lowVoltStartTime = 0; 
     }
     
-    // STEP 2: Engine Detection Logic
+    // STEP 2: Engine Detection & Charge State Logic
     else {
         if (altV >= TURN_ON_VOLTS) {
             // Voltage is high: Engine is definitely running
-            lowVoltStartTime = 0; // Reset the "low voltage" timer
+            lowVoltStartTime = 0; 
             
             // Determine if the battery is full (High Volts AND Low Amps)
-            if (battV > 14.2 && battA < 0.5) {
-                if (fullTimerStart == 0) fullTimerStart = millis();
-                // Stay in this mode for 5 mins before declaring 'FULL'
-                if (millis() - fullTimerStart > 300000) systemState = FULL;
+            if (battV > 14.2 && battA < 0.6) {
+                // If we aren't already FULL, start/check the 5-minute timer
+                if (systemState != FULL) {
+                    if (fullTimerStart == 0) fullTimerStart = millis();
+                    
+                    // Stay in this mode for 5 mins before declaring 'FULL'
+                    if (millis() - fullTimerStart > 300000) {
+                        systemState = FULL;
+                        logToSD("STATE: FULL", altV, altA, battV, battA, currentTemp);
+                    }
+                }
             } else {
+                // Criteria no longer met (Current rose or Voltage dropped)
                 fullTimerStart = 0;
-                // If we were already 'FULL', stay there as long as volts stay above 12.8
-                if (systemState == FULL && battV > 12.8) systemState = FULL;
-                else systemState = BULK; // Otherwise, we need BULK charging
+                
+                // If we were already FULL, only drop back to BULK if voltage sags
+                // This prevents "flip-flopping" between modes
+                if (systemState == FULL) {
+                    if (battV < 13.1) systemState = BULK;
+                } else {
+                    systemState = BULK; // Otherwise, we need BULK charging
+                }
             }
         } 
         else if (altV < TURN_OFF_VOLTS) {
             // Voltage is low: Engine might be off. Start a 3-second countdown.
             if (lowVoltStartTime == 0) lowVoltStartTime = millis();
             
-            // If it stays low for 3 full seconds, turn everything off
             if (millis() - lowVoltStartTime > DISCONNECT_DELAY) {
                 systemState = OFF;
+                fullTimerStart = 0; // Reset full timer if engine stops
             }
-        } 
-        else {
-            // Hysteresis Zone: Voltage is between 12.8 and 13.4. 
-            // Don't change anything; this prevents the relay from clicking repeatedly.
-            lowVoltStartTime = 0; 
         }
+        // Hysteresis Zone: If altV is between 12.8 and 13.4, systemState remains unchanged.
     }
 
     // --- 2.3 HARDWARE ACTIONS ---
-    if (systemState == BULK || systemState == FULL) {
-        // CHARGING: Click the relay ON
+    // Change: Relay is ONLY active during active BULK charging.
+    // Transitioning to FULL (Finished), OFF (Standby), or PROTECT (Alarm) opens the relay.
+    if (systemState == BULK) {
         setChargerPower(true);
         
         // If we are pushing more than 14A, beep the buzzer as a warning
-        if (systemState == BULK && battA > 14.0) {
+        if (battA > 14.0) {
             digitalWrite(PIN_BUZZER, (millis() % 500 < 250));
         } else {
             digitalWrite(PIN_BUZZER, LOW);
         }
     } 
     else {
-        // STOPPED: Click the relay OFF (Isolate batteries)
+        // Relay OFF for STANDBY, FINISHED, or PROTECT
         setChargerPower(false);
 
-        // If we stopped because of a fault (PROTECT), sound the Triple-Beep alarm
+        // Sound the Triple-Beep alarm ONLY if in PROTECT state
         if (systemState == PROTECT && heartbeatCount == 0) {
             uint32_t pattern = millis() % 1000;
             if ((pattern < 100) || (pattern > 200 && pattern < 300) || (pattern > 400 && pattern < 500)) {
@@ -291,44 +301,36 @@ void loop() {
     }
 
     // --- 2.4 SAVING DATA ---
-    // Log standard data every 2 minutes
     if (millis() - lastLog >= LOG_INTERVAL) {
         logToSD("DATA", altV, altA, battV, battA, currentTemp);
         lastLog = millis();
     }
     
-    // Every 10 minutes, pause charging for 1 second. 
-    // This lets us measure the true "Resting" voltage of the battery.
     if (millis() - lastHealth >= HEALTH_INT) {
         setChargerPower(false); 
         delay(1000); 
         logToSD("PULSE", ina_alt.getBusVoltage_V(), 0, ina_batt.getBusVoltage_V(), 0, currentTemp);
-        if (systemState == BULK) setChargerPower(true); // Restart charging
+        if (systemState == BULK) setChargerPower(true); 
         lastHealth = millis();
     }
 
     // --- 2.5 THE WATCHDOG PULSE ---
-    // We send a pulse to the NE555 timer every second.
-    // If the engine stops, we keep pulsing for 30 seconds to allow the final SD logs to finish.
     if (systemState != OFF || (millis() - lowVoltStartTime < 30000)) {
         if (millis() - lastWatchdogPulse > 1000) {
             pinMode(pulsePin, OUTPUT);
-            digitalWrite(pulsePin, HIGH); // Send pulse
+            digitalWrite(pulsePin, HIGH); 
             delay(10);
-            digitalWrite(pulsePin, LOW);  // End pulse
+            digitalWrite(pulsePin, LOW);  
             lastWatchdogPulse = millis();
             
-            // Keep track of heartbeats for the alarm timing
             heartbeatCount++;
             if (heartbeatCount >= 10) heartbeatCount = 0;
         }
     }
 
     // --- 2.6 SCREEN UPDATES ---
-    // Fade the panel LED in and out (Visual check that code is running)
     analogWrite(PIN_HEARTBEAT, 128 + 127 * cos(millis() / 500.0));
     
-    // Display the current State (Charging, Standby, etc.)
     oled.setCursor(0, 0);
     oled.print(F("STATE: "));
     if(systemState==BULK)      oled.println(F("CHARGING  "));
@@ -336,7 +338,6 @@ void loop() {
     else if(systemState==OFF)  oled.println(F("STANDBY   "));
     else                       oled.println(F("ALARM/HOT "));
 
-    // Display SD status and how many logs saved
     oled.setCursor(0, 1);
     if(sdActive) {
         oled.print(F("SD OK - Log: ")); oled.print(logCount);
@@ -345,7 +346,6 @@ void loop() {
         oled.print(F("SD ERROR/MISSING "));
     }
 
-    // Update the clock on the screen every second
     if (rtcActive && (millis() - lastClockUpdate >= 1000)) { 
         lastClockUpdate = millis();
         DateTime now = rtc.now(); 
@@ -355,19 +355,17 @@ void loop() {
         oled.print(timeBuf);
     }
 
-    // Big Bold Text: Battery Voltage and Charging Amps
     oled.set2X();
     oled.setCursor(0, 4); 
     oled.print(battV, 1); oled.print(F("V "));
     oled.print(battA, 1); oled.println(F("A  "));
     
-    // Small Text: Alternator Voltage and Interior Temp
     oled.set1X();
     oled.setCursor(0, 7);
     oled.print(F("Alt: ")); oled.print(altV, 1); oled.print(F("V "));
     
     oled.setCursor(95, 7);
-    if (currentTemp < -50.0) oled.print(F("ERR!")); // If sensor fails or is unplugged
+    if (currentTemp < -50.0) oled.print(F("ERR!")); 
     else {
         oled.print((int)currentTemp);
         oled.print(F("C "));
