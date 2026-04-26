@@ -31,6 +31,7 @@
             padding: 2rem; 
         }
 
+        /* Hero Section Styling - Preserved */
         .hero-section {
             display: flex;
             gap: 2.5rem;
@@ -65,8 +66,7 @@
 
         h1 { font-size: 1.8rem; margin-top: 0; }
         h2 { color: var(--gh-blue); border-bottom: 1px solid var(--gh-border); padding-bottom: 0.3em; margin-top: 2rem; }
-        h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
-
+        
         .note { 
             background-color: var(--note-bg); 
             padding: 1.25rem; 
@@ -171,7 +171,7 @@
         </div>
 
         <div class="image-sidebar">
-            <img src="https://github.com/user-attachments/assets/c9b9c29e-7af7-4797-a5bf-2665156401bc" alt="T5 BMS V1.0 Architecture">
+            <img src="https://github.com/user-attachments/assets/c9b9c29e-7af7-4797-a5bf-2665156401bc" alt="Full System Schematic & Management Architecture">
             <span class="caption">Full System Schematic & Management Architecture</span>
         </div>
     </div>
@@ -179,10 +179,10 @@
     <h2>Engineering Focus: The Low-Resistance Trap</h2>
     <p>Modern AGM, Gel, and Lithium batteries have significantly <strong>lower internal resistance</strong> than legacy lead-acid units. When directly bridged to a T5 alternator via a standard relay, they pull massive current—often exceeding 30A—overloading vehicle wiring and risking thermal damage to the battery plates.</p>
     
-    <p>This system acts as an intelligent current-limiter, capping the charge at a safe **14A** while maintaining a stable **14.4V** profile regardless of alternator load.</p>
+    <p>This system acts as an intelligent current-limiter, capping the charge at a safe <strong>14A</strong> while maintaining a stable <strong>14.4V</strong> profile regardless of alternator load.</p>
 
     <h2>Safety & Reliability: The NE555 Watchdog</h2>
-    <p>To ensure <strong>zero parasitic drain</strong> when the engine is off and to protect against software hangs, we utilize an <strong>NE555 "Missing Pulse" Detector</strong>. The Nano sends a 1Hz heartbeat; if this heartbeat stops due to an engine shutdown or a software error, the watchdog physically cuts power to the module after a **30-second grace period**, allowing for a final log to the SD card.</p>
+    <p>To ensure <strong>zero parasitic drain</strong> when the engine is off and to protect against software hangs, we utilize an <strong>NE555 "Missing Pulse" Detector</strong>. The Nano sends a 1Hz heartbeat; if this heartbeat stops due to an engine shutdown or a software error, the watchdog physically cuts power to the module after a <strong>30-second grace period</strong>, allowing for a final log to the SD card.</p>
 
     <h2>V1.0 Logic & Charge Stages</h2>
     <div class="table-container">
@@ -191,11 +191,37 @@
                 <tr><th>Stage</th><th>Technical Description</th></tr>
             </thead>
             <tbody>
-                <tr><td><strong>OFF/STANDBY</strong></td><td>Engine confirmed off. System isolated below **12.8V** for 3 seconds.</td></tr>
-                <tr><td><strong>BULK</strong></td><td>Engine detected running (**13.4V**). Relay engaged; LTC3780 active at 14.4V/14A.</td></tr>
-                <tr><td><strong>FULL/FINISHED</strong></td><td>Target reached (**14.2V** and **< 0.5A** for 5 mins). System enters float/finish mode.</td></tr>
-                <tr><td><strong>PROTECT</strong></td><td>Instant disconnect if Temp > **60°C**, sensor error, or Battery > **14.6V**. Triggers Triple-Pulse Alarm.</td></tr>
+                <tr><td><strong>OFF/STANDBY</strong></td><td>Engine confirmed off. System isolated below <strong>12.8V</strong> for 3 seconds.</td></tr>
+                <tr><td><strong>BULK</strong></td><td>Engine detected running (<strong>13.4V</strong>). Relay engaged; LTC3780 active at 14.4V/14A.</td></tr>
+                <tr><td><strong>FULL/FINISHED</strong></td><td>Target reached (<strong>14.2V</strong> and <strong>< 0.5A</strong> for 5 mins). System enters float/finish mode.</td></tr>
+                <tr><td><strong>PROTECT</strong></td><td>Instant disconnect if Temp > <strong>60°C</strong>, sensor error, or Battery > <strong>14.6V</strong>. Triggers Triple-Pulse Alarm.</td></tr>
                 <tr><td><strong>PULSE CHECK</strong></td><td>Every 10 minutes, charging halts briefly to record the resting battery voltage.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>📸 Prototype & Operations</h2>
+    <div class="table-container">
+        <table class="tech-table">
+            <thead>
+                <tr>
+                    <th style="width: 50%; text-align: center;">**Normal Operation (Charging)**</th>
+                    <th style="width: 50%; text-align: center;">**Physical Build**</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="vertical-align: top; padding: 15px;">
+                        <img src="https://github.com/user-attachments/assets/b65c3985-da8e-4dd7-8def-a0e18d33c60c" alt="OLED Display" style="width: 100%; border-radius: 4px;">
+                    </td>
+                    <td style="vertical-align: top; padding: 15px;">
+                        <img src="https://github.com/user-attachments/assets/62224603-5f40-4c05-a9c2-ff8231798999" alt="Inside Unit" style="width: 80%; border-radius: 4px;">
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size: 0.85rem; padding: 15px;">Display shows the current mode of operation which is 'Charging', the health of the SD card and the number of data points logged since ignition start, the health of the Real Time Clock with current Date and Time, the voltage and current of the Leisure Battery, the Voltage of the Alternator, and the internal unit temperature.</td>
+                    <td style="font-size: 0.85rem; padding: 15px;">Image shows the internal hardware architecture of the Prototype unit, including the Arduino Nano, LTC3780, and safety watchdog components.</td>
+                </tr>
             </tbody>
         </table>
     </div>
