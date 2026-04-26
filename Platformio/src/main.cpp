@@ -100,33 +100,43 @@ void setChargerPower(bool powerOn) {
  * It combines the Date, Time, Voltages, Currents, and Temperatures into one line.
  */
 void logToSD(const char* note, float v1, float a1, float v2, float a2, float temp) {
-    if (!sdActive) return; // If SD card failed, don't try to write (avoids crashing)
+    if (!sdActive) return;
 
-    File dataFile = SD.open(F("T5_BMS.csv"), FILE_WRITE); // Open the log file
+    if (!SD.begin(PIN_SD_CS)) {
+        sdActive = false;
+        return;
+    }
+
+    File dataFile = SD.open("T5_BMS.csv", FILE_WRITE);
     if (dataFile) {
+        // --- 1. Split Date and Time into two columns ---
         if (rtcActive) {
-            DateTime now = rtc.now(); // Get the current time from the clock
-            char buf[25]; 
-            // Format: YYYY-MM-DD HH:MM:SS
-            sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d", 
-                    now.year(), now.month(), now.day(), 
-                    now.hour(), now.minute(), now.second());
-            dataFile.print(buf); 
+            DateTime now = rtc.now();
+            // This creates: 2026/04/26 in column 1, then a tab, then 17:35:01 in column 2
+            char dateBuf[] = "YYYY/MM/DD";
+            char timeBuf[] = "HH:mm:ss";
+            dataFile.print(now.toString(dateBuf));
+            dataFile.print(F(",\t")); 
+            dataFile.print(now.toString(timeBuf));
         } else {
-            dataFile.print(millis() / 1000); // If no clock, use seconds since power-on
+            dataFile.print(F("No RTC"));
+            dataFile.print(F(",\t"));
+            dataFile.print(millis());
         }
         
-        // Write all the numbers separated by commas for Excel/Google Sheets
-        dataFile.print(F(",")); dataFile.print(v1, 2); 
-        dataFile.print(F(",")); dataFile.print(a1, 2); 
-        dataFile.print(F(",")); dataFile.print(v2, 2); 
-        dataFile.print(F(",")); dataFile.print(a2, 2); 
-        dataFile.print(F(",")); dataFile.print(temp, 1);
-        dataFile.print(F(",")); dataFile.println(note);
-        dataFile.close(); // Important: Save the file to the card
-        logCount++;       // Add 1 to our successful log counter
+        // --- 2. The rest of the telemetry ---
+        dataFile.print(F(",\t")); dataFile.print(v1);
+        dataFile.print(F(",\t")); dataFile.print(a1);
+        dataFile.print(F(",\t")); dataFile.print(v2);
+        dataFile.print(F(",\t")); dataFile.print(a2);
+        dataFile.print(F(",\t")); dataFile.print(temp);
+        dataFile.print(F(",\t")); dataFile.println(note);
+        
+        dataFile.flush(); 
+        dataFile.close(); 
+        logCount++;
     } else {
-        sdActive = false; // If writing fails, stop trying until reset
+        sdActive = false;
     }
 }
 
