@@ -1,6 +1,6 @@
-# 🚐 VW-T5-Intelligent-Split-Charge-Management-System
+# 🚐 VW-T5-Intelligent-Split-Charge-Management-System (Version 1.0)
 
-**T5-BMS** is a custom-engineered **Power Management** solution designed to correct the "low-resistance trap" in VW Transporter campervan conversions. By adding a software-defined management layer—powered by an **Arduino Nano** and an **LTC3780 Buck-Boost** controller—this system provides active current regulation, precision telemetry, and automated failsafe isolation for leisure battery systems.
+**VW-T5 Battery Management System (T5-BMS)** is a custom-engineered **Power Management** solution designed to correct the "low-resistance trap" in VW Transporter campervan conversions. By adding a software-defined management layer—powered by an **Arduino Nano** and an **LTC3780 Buck-Boost** controller—this system provides active current regulation, precision telemetry, and automated failsafe isolation for leisure battery systems.
 
 ---
 
@@ -16,25 +16,26 @@
   <tr>
     <td colspan="2">
       <p>
-        Modern leisure batteries (AGM, Gel, and Lithium) feature significantly <b>lower internal resistance</b> than the legacy batteries originally designed for the VW T5. When these new batteries are connected to a high-output <b>non-smart alternator</b> via a standard Voltage Sensitive Relay (VSR), they attempt to pull massive current—often exceeding 30A.
-      </p>
+ Modern leisure batteries (AGM, Gel, and Lithium) feature significantly **lower internal resistance** than legacy batteries. When connected to a high-output **non-smart alternator** via a standard Voltage Sensitive Relay (VSR), they attempt to pull massive current—often exceeding 30A.
+     </p>
       <p>
-        This surge not only blows the vehicle's original 20A fuses but can <b>permanently damage your new battery</b> by forcing a charge rate far beyond its specification. This project provides the missing "intelligence" by adding an active management stage that caps current at a safe <b>14A</b> while ensuring a rock-steady 14.4V charge profile.
-      </p>
+This surge not only blows the vehicle's original 20A fuses but can permanently damage your battery. This project provides the missing "intelligence" by adding an active management stage that caps current at a safe **14A** while ensuring a rock-steady **14.4V charge profile**.
+    </p>
     </td>
   </tr>
 </table>
 
 ---
 
-## ✨ Key Technical Features
+## ✨ Key Technical Features (V1.0)
 
-* **Active Current Regulation:** Supplements the existing VSR by hardware-capping the charging current at **14A**, protecting both the vehicle loom and the battery chemistry.
-* **Non-Smart Alternator Optimization:** Specifically designed for T5/T5.1 models with traditional alternators to provide the benefits of a modern DC-to-DC charger.
-* **Precision Dual-Rail Telemetry:** Features two **INA219 sensors** with modified **0.01 Ohm shunts** for high-accuracy monitoring of both input and output power.
-* **Watchdog Power Latch:** An integrated **NE555 "Missing Pulse Detector"** circuit provides a 2-minute "grace period" for data logging after the engine stops before physically cutting all parasitic drain.
-* **Persistent Data Logging:** Automatically records time-stamped voltage and amperage to a **CSV file** on an SD Card via a **DS3231 RTC**.
-
+* **Active Current Regulation:** Hardware-capping the charging current at **14A** using the LTC3780 Constant Current (CC) mode.
+* **Hysteresis-Based Switching:** Prevents relay chatter by connecting at **13.4V** and disconnecting only if the voltage remains below **12.8V** for more than **3 continuous seconds**.
+* **Precision Dual-Rail Telemetry:** Uses two **INA219 sensors** with modified **0.01 Ohm shunts** for high-accuracy monitoring of input and output power.
+* **Thermal Failsafe:** Integrated **DS18B20 sensor** triggers a physical disconnect and a **Triple-Pulse Alarm** if internal enclosure temperatures exceed **60°C**.
+* **Watchdog Power Latch:** An integrated **NE555 circuit** monitors a 1Hz heartbeat from the Nano. It provides a **30-second grace period** for final data logging after the engine stops before cutting all parasitic drain.
+* **Persistent Data Logging:** Automatically records time-stamped voltage, amperage, and temperature to a **CSV file** on an SD Card via a **DS3231 RTC**.
+  
 ---
 
 <img width="4986" height="2850" alt="Battery Management System - Nano_bb" src="https://github.com/user-attachments/assets/c9b9c29e-7af7-4797-a5bf-2665156401bc" />
@@ -42,30 +43,28 @@
 ---
 
 
-## 🛠️ Hardware Stack & Engineering Choices
+## 🛠️ Hardware Stack
 
-### 1. The Microcontroller (Arduino Nano)
-The "brain" of the system manages the state machine, monitors safety thresholds, and drives the **SSD1306 OLED** for real-time diagnostics.
+### 1. The Brain (Arduino Nano)
+Manages the state machine, monitors safety thresholds, and drives the **SSD1306 OLED** diagnostics.
 
-### 2. High-Precision Sensing (INA219 + Shunt Mod)
-Standard current sensors often lack the resolution or range for high-current automotive use. We modified the INA219 modules by replacing the stock shunts with **0.01 Ohm (R100) shunts**, allowing the Nano to measure up to 14A with high precision on both the Alternator and Battery rails.
+### 2. The Power Stage (LTC3780)
+Maintains a constant 14.4V output regardless of whether the alternator voltage is sagging or peaking.
 
-### 3. The Power Stage (LTC3780)
-The **LTC3780 Buck-Boost converter** was chosen for its ability to maintain a constant 14.4V output regardless of whether the alternator voltage is sagging (11V) or peaking (14.8V).
-
-### 4. Safety Watchdog (NE555)
-To prevent software hangs from draining the starter battery, the Nano sends a 1Hz heartbeat to an **NE555 timer**. If the heartbeat stops (due to code error or engine shutdown), the system physically isolates the battery via a **40A mechanical relay** after 120 seconds.
+### 3. Safety Watchdog (NE555)
+To prevent battery drain or software hangs, the Nano sends a heartbeat to an NE555 timer. If the heartbeat stops, the system physically isolates the battery after **30 seconds**.
 
 ---
 
 ## 📐 Logic & Charge Stages
 
-The system software implements a robust state machine to handle the battery lifecycle:
+The system software implements a robust state machine:
 
-1. **STANDBY:** The system remains isolated until the alternator voltage exceeds **13.2V**.
-2. **BULK:** The 40A relay engages, and the LTC3780 provides a stabilized 14.4V charge capped at 14A.
-3. **FINISHED:** Triggered when the battery reaches **14.2V** and current draw drops below **0.5A** for 5 minutes, preventing overcharging.
-4. **PULSE CHECK:** Every 10 minutes, the charge is momentarily halted to log accurate "resting" battery voltage to the SD card.
+1. **OFF/STANDBY:** System isolated until alternator > **13.4V**.
+2. **BULK:** Relay engaged. LTC3780 provides 14.4V, capped at 14A.
+3. **FULL/FINISHED:** Triggered at **14.2V** and < **0.5A** current for 5 mins.
+4. **PROTECT:** Instant disconnect if Temp > **60°C**, Sensor Error, or Battery > **14.6V**.
+5. **PULSE CHECK:** Every 10 mins, charging halts momentarily to log resting voltage.
 
 ---
 
@@ -73,7 +72,7 @@ The system software implements a robust state machine to handle the battery life
 
 * **Solar Integration:** Adding an MPPT charging rail to balance power between the Alternator and Solar panels.
 * **Bluetooth Telemetry:** HC-05 module integration for live smartphone dashboard monitoring.
-* **LiFePO4 Profiles:** Software updates to support the specific voltage cut-offs required for **Lithium Iron Phosphate** batteries.
+* **LiFePO4 Profiles:** Software updates to support the specific voltage cut-offs required for Lithium Iron Phosphate.
 
 ---
 
