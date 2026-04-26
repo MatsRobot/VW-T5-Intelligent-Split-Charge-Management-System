@@ -55,6 +55,30 @@ Maintains a constant 14.4V output regardless of whether the alternator voltage i
 To prevent battery drain or software hangs, the Nano sends a heartbeat to an NE555 timer. If the heartbeat stops, the system physically isolates the battery after **30 seconds**.
 
 ---
+<table width="100%">
+  <tr>
+    <th width="50%">**Normal Operation (Charging)**</th>
+    <th width="50%">**Physical Build**</th>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="https://github.com/user-attachments/assets/b65c3985-da8e-4dd7-8def-a0e18d33c60c" width="100%" alt="OLED Display in Charging Mode" />
+    </td>
+    <td width="50%" valign="top">
+      <img src="https://github.com/user-attachments/assets/62224603-5f40-4c05-a9c2-ff8231798999" width="100%" alt="Inside the Prototype Unit" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      Display shows the current mode of operation which is 'Charging', the health of the SD card and the number of data points logged since ignition start, the health of the Real Time Clock with current Date and Time, the voltage and current of the Leisure Battery, the Voltage of the Alternator, and the internal unit temperature.
+    </td>
+    <td width="50%" valign="top">
+      Image shows the internal hardware architecture of the Prototype unit, including the Arduino Nano, LTC3780, and safety watchdog components.
+    </td>
+  </tr>
+</table>
+---
+
 
 ## 📐 Logic & Charge Stages
 
